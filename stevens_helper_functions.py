@@ -246,6 +246,15 @@ def plot_normal_dist(mu=0, std=1, percent_graph_to_show=0.999, title=None, xlabe
                 kwargs = vline_kwargs
             plt.axvline(x, **kwargs)
 
+def one_dim_scatterplot(arr, ax, jitter=0.2, **options):
+    """Plot data in one dimensions with y-axis jitter to spread out the points."""
+    y_range = np.zeros_like(arr)
+    if jitter:
+        y_range += stats.uniform(-jitter, jitter).rvs(len(arr))
+    ax.scatter(arr, y_range, **options)
+    ax.yaxis.set_ticklabels([])
+    ax.set_ylim([-1, 1])
+
 
 if __name__ == "__main__":
     print("Welcome to Steven's Helper Functions!")
