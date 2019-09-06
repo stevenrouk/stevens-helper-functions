@@ -140,14 +140,66 @@ def plot_pmf(dist, x_max, color_lower_range=None, savefig_filename=None):
     
     plt.show()
 
+def z_score(x_bar, mu, std, n):
+    """Calculate the z-score (z statistic) for a one-sample z-test."""
+    return (x_bar - mu) / standard_error_of_the_mean(std, n)
+
+def confidence_interval(dist, percentile):
+    """Returns the range that {percentile} percent of the data lies in."""
+    percentile = percentile / 100
+    lower_95 = dist.ppf((1 - percentile) / 2)
+    upper_95 = dist.ppf(1 - (1 - percentile) / 2)
+
+    return (lower_95, upper_95)
+
+def standard_error_of_the_mean(std, n):
+    """Returns the standard error of the mean (sem), which is the standard
+    deviation of the sampling distribution for the mean."""
+    return std / np.sqrt(n)
+
+def p_value(x_bar, mu, std, n):
+    """Calculate the p-value for a one-sample z-test.
+    
+    Note:
+        - unit_norm.cdf(z) = sampling_dist.cdf(x_bar)
+    """
+    z = abs(z_score(x_bar, mu, std, n))
+    sem = standard_error_of_the_mean(std, n)
+    unit_norm = stats.norm(0, 1)
+
+    return (1 - unit_norm.cdf(z)) * 2
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
 # Data Visualization Helper Functions
 #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def plot_normal_dist(mu=0, std=1, percent_graph_to_show=0.999, title=None, xlabel=None, ylabel=None):
-    """Plot a normal distribution with specified mean and standard deviation."""
+def plot_normal_dist(mu=0, std=1, percent_graph_to_show=0.999, title=None, xlabel=None, ylabel=None, legend=None, vline_x_list=None, vline_kwargs=None):
+    """Plot a normal distribution with specified mean and standard deviation.
+    
+    Example:
+    sem = standard_error_of_the_mean(0.5, 500)
+    dist_sampling_mean = stats.norm(2, sem)
+    percentile = .95
+    lower_95 = dist_sampling_mean.ppf((1 - percentile) / 2)
+    upper_95 = dist_sampling_mean.ppf(1 - (1 - percentile) / 2)
+
+    red_line_kwargs = {'color': 'red', 'linestyle': '--', 'linewidth': 1}
+    blue_line_kwargs = {'color': 'blue', 'linestyle': '--', 'linewidth': 1}
+
+    plot_normal_dist(
+        2,
+        sem,
+        0.999,
+        "Sampling distribution of the mean lunch hour",
+        "Hours at lunch",
+        "pdf",
+        ["pdf"],
+        vline_x_list=[2+1/60, lower_95, upper_95],
+        vline_kwargs=[blue_line_kwargs, red_line_kwargs, red_line_kwargs]
+    )
+    """
     dist = stats.norm(mu, std)
     x_lower = dist.ppf((1 - percent_graph_to_show) / 2)
     x_upper = dist.ppf(1 - (1 - percent_graph_to_show) / 2)
@@ -162,6 +214,16 @@ def plot_normal_dist(mu=0, std=1, percent_graph_to_show=0.999, title=None, xlabe
         _ = ax.set_xlabel(xlabel)
     if ylabel:
         _ = ax.set_ylabel(ylabel)
+    if legend:
+        _ = ax.legend(legend)
+    
+    if vline_x_list:
+        for i, x in enumerate(vline_x_list):
+            if isinstance(vline_kwargs, list) and len(vline_kwargs) > 1:
+                kwargs = vline_kwargs[i]
+            else:
+                kwargs = vline_kwargs
+            plt.axvline(x, **kwargs)
 
 
 if __name__ == "__main__":
