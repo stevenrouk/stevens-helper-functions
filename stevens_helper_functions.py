@@ -3,11 +3,64 @@ import scipy.stats as stats
 
 import matplotlib.pyplot as plt
 
+plt.style.use('fivethirtyeight') # or 'ggplot', or one of the seaborn defaults
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
 # Probability Helper Functions
 #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def list_of_probability_distributions():
+    discrete_distributions = {
+        'Uniform': {
+            'discrete': True,
+            'continuous': True,
+            'description': 'Equal probability anywhere in range.'
+        },
+        'Bernoulli': {
+            'discrete': ,
+            'continuous': ,
+            'description': ''
+        },
+        'Binomial': {
+            'discrete': ,
+            'continuous': ,
+            'description': ''
+        },
+        'Geometric': {
+            'discrete': ,
+            'continuous': ,
+            'description': ''
+        },
+        'Hypergeometric': {
+            'discrete': ,
+            'continuous': ,
+            'description': ''
+        },
+        'Poisson': {
+            'discrete': True,
+            'continuous': True,
+            'description': ''
+        },
+        'Exponential': {
+            'discrete': False,
+            'continuous': True,
+            'description': ''
+        },
+        'Gamma': {
+            'discrete': False,
+            'continuous': True,
+            'description': ''
+        },
+        'Normal': {
+            'discrete': False,
+            'continuous': True,
+            'description': ''
+        }
+    }
+
+    return discrete_distributions, continuous_distributions
 
 def create_pmf(dist, range_vals):
     """
@@ -61,11 +114,11 @@ def binomial_test(n, k, p_null=0.5, return_dist=False):
         If return_dist == True, returns the scipy.stats binomial distribution
         that was used to find the p-value.
     """
-    binomial = stats.binom(n=n, p=p_null)
-    p_value = 1 - binomial.cdf(k-1)
+    binomial_dist = stats.binom(n=n, p=p_null)
+    p_value = 1 - binomial_dist.cdf(k-1)
     
     if return_dist:
-        return p_value, binomial
+        return p_value, binomial_dist
     else:
         return p_value
 
@@ -75,7 +128,7 @@ def plot_pmf(dist, x_max, color_lower_range=None, savefig_filename=None):
     of a certain value (for example, to color 1 minus the CDF), and optionally
     saving the plot to a file.
     """
-    fig, ax = plt.subplots(1, figsize= (10, 4))
+    fig, ax = plt.subplots(1, figsize=(10, 4))
     bar = ax.bar(range(x_max+1), [dist.pmf(i) for i in range(x_max+1)])
     
     if color_lower_range:
@@ -86,6 +139,29 @@ def plot_pmf(dist, x_max, color_lower_range=None, savefig_filename=None):
         plt.savefig(savefig_filename)
     
     plt.show()
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+# Data Visualization Helper Functions
+#
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def plot_normal_dist(mu=0, std=1, percent_graph_to_show=0.999, title=None, xlabel=None, ylabel=None):
+    """Plot a normal distribution with specified mean and standard deviation."""
+    dist = stats.norm(mu, std)
+    x_lower = dist.ppf((1 - percent_graph_to_show) / 2)
+    x_upper = dist.ppf(1 - (1 - percent_graph_to_show) / 2)
+    x_values = np.linspace(x_lower, x_upper, num=1000)
+    normal_pmf_values = [dist.pdf(x) for x in x_values]
+
+    fig, ax = plt.subplots(1, 1)
+    _ = ax.plot(x_values, normal_pmf_values)
+    if title:
+        _ = ax.set_title(title)
+    if xlabel:
+        _ = ax.set_xlabel(xlabel)
+    if ylabel:
+        _ = ax.set_ylabel(ylabel)
 
 
 if __name__ == "__main__":
