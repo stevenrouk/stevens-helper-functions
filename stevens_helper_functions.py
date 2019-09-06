@@ -141,7 +141,8 @@ def plot_pmf(dist, x_max, color_lower_range=None, savefig_filename=None):
     plt.show()
 
 def z_score(x_bar, mu, std, n):
-    """Calculate the z-score (z statistic) for a one-sample z-test."""
+    """Calculate the z-score (z-statistic) for a one-sample z-test. This is
+    the same as the t-statistic."""
     return (x_bar - mu) / standard_error_of_the_mean(std, n)
 
 def confidence_interval(dist, percentile):
@@ -157,17 +158,37 @@ def standard_error_of_the_mean(std, n):
     deviation of the sampling distribution for the mean."""
     return std / np.sqrt(n)
 
-def p_value(x_bar, mu, std, n):
-    """Calculate the p-value for a one-sample z-test.
+def p_value(x_bar, mu, std, n, test='z-test'):
+    """Calculate the p-value for a one-sample z-test or t-test.
     
     Note:
         - unit_norm.cdf(z) = sampling_dist.cdf(x_bar)
     """
     z = abs(z_score(x_bar, mu, std, n))
     sem = standard_error_of_the_mean(std, n)
-    unit_norm = stats.norm(0, 1)
+    if test == 'z-test':
+        unit_norm = stats.norm(0, 1)
+        pval = (1 - unit_norm.cdf(z)) * 2
+    else:
+        pval = (1 - stats.t.cdf(z, n-1)) * 2
 
-    return (1 - unit_norm.cdf(z)) * 2
+    return pval
+
+def sample_size_needed(alpha, power, mu_a, mu_b, s):
+    """Returns the sample size needed to achieve a certain statistical power,
+    given alpha, the means of the two groups, and the standard deviation of the
+    two groups.
+    
+    Note:
+        - power = 1 - beta, where beta is the probability of a Type II error.
+        - alpha is also the probability of a Type I error.
+    """
+    unit_norm = stats.norm(0, 1)
+    z_alpha = unit_norm.ppf(alpha)
+    z_power = unit_norm.ppf(power)
+
+    return ((z_power - z_alpha) * s / (mu_a - mu_b))**2
+
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
