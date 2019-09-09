@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import scipy.stats as stats
 
 import matplotlib.pyplot as plt
@@ -140,6 +141,26 @@ def plot_pmf(dist, x_max, color_lower_range=None, savefig_filename=None):
     
     plt.show()
 
+def empirical_distribution(x, data):
+    """Cumulative distribution for the data. ***TODO: Fill out with more detail."""
+    weight = 1.0 / len(data)
+    count = np.zeros(shape=len(x))
+    for datum in data:
+        count = count + np.array(x >= datum)
+    return weight * count
+
+def likelihood():
+    """TODO: Fill out function."""
+    pass
+
+def log_likelihood():
+    """TODO: Fill out function."""
+    pass
+
+def maximum_likelihood():
+    """TODO: Fill out function."""
+    pass
+
 def z_score(x_bar, mu, std, n):
     """Calculate the z-score (z-statistic) for a one-sample z-test. This is
     the same as the t-statistic."""
@@ -189,6 +210,81 @@ def sample_size_needed(alpha, power, mu_a, mu_b, s):
 
     return ((z_power - z_alpha) * s / (mu_a - mu_b))**2
 
+class Bayes:
+    """Implements Bayesian updating.
+
+    Given a list of priors and a function that can be used to calculate the likelihood of
+    seeing data given parameters, the Bayes class can be used to incrementally update the
+    priors based on seeing new data.
+    """
+    def __init__(self, prior, likelihood_func):
+        """Initialize the Bayes class.
+
+        Parameters
+        ----------
+        prior : dict
+            Each key is a possible parameter value (e.g. 4-sided die),
+            each value is the associated probability of that parameter value.
+        likelihood_func : function
+            Takes a new piece of data and a parameter value and
+            outputs the likelihood of getting that data given
+            that value of the parameter.
+        """
+        self.prior = prior.copy()
+        self.likelihood_func = likelihood_func
+
+
+    def normalize(self):
+        """
+        Makes the sum of the probabilities in self.prior equal 1.
+
+        Args: None
+
+        Returns: None
+
+        """
+        normalize_sum = sum(self.prior.values())
+        for key in self.prior:
+            self.prior[key] = self.prior[key] / normalize_sum
+    
+    def update(self, data):
+        """
+        Conduct a bayesian update. For each possible parameter value 
+        in self.prior, multiply the prior probability by the likelihood 
+        of the data and make this the new prior.
+
+        Args:
+            data (int): A single observation (data point)
+
+        Returns: None
+        
+        """
+        for k in self.prior:
+            self.prior[k] = self.likelihood_func(data, k) * self.prior[k]
+        
+        self.normalize()
+
+    def print_distribution(self):
+        """
+        Print the current posterior probability.
+        """
+        for k in sorted(self.prior.keys()):
+            print(k, self.prior[k])
+    
+    def plot(self, color=None, title=None, label=None):
+        """
+        Plot the current prior.
+        """
+        pass
+
+def likelihood_bernoulli(flip, p):
+    """Returns the probability of seeing the flip we got, if p is the
+    correct probability of seeing a heads. Can be passed into the Bayes
+    class as the likelihood function."""
+    if flip == 'H':
+        return p
+    else:
+        return 1 - p
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
@@ -196,7 +292,7 @@ def sample_size_needed(alpha, power, mu_a, mu_b, s):
 #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-def plot_normal_dist(mu=0, std=1, percent_graph_to_show=0.999, title=None, xlabel=None, ylabel=None, legend=None, vline_x_list=None, vline_kwargs=None):
+def plot_normal_dist(ax, mu=0, std=1, x_lower=None, x_upper=None, percent_graph_to_show=0.999, title=None, xlabel=None, ylabel=None, legend=None, vline_x_list=None, vline_kwargs=None, **options):
     """Plot a normal distribution with specified mean and standard deviation.
     
     Example:
@@ -222,13 +318,18 @@ def plot_normal_dist(mu=0, std=1, percent_graph_to_show=0.999, title=None, xlabe
     )
     """
     dist = stats.norm(mu, std)
-    x_lower = dist.ppf((1 - percent_graph_to_show) / 2)
-    x_upper = dist.ppf(1 - (1 - percent_graph_to_show) / 2)
+    if not(x_lower and x_upper) and percent_graph_to_show:
+        x_lower = dist.ppf((1 - percent_graph_to_show) / 2)
+        x_upper = dist.ppf(1 - (1 - percent_graph_to_show) / 2)
+    elif (x_lower and x_upper):
+        pass
+    else:
+        x_lower = mu - 4*std
+        x_upper = mu + 4*std
     x_values = np.linspace(x_lower, x_upper, num=1000)
     normal_pmf_values = [dist.pdf(x) for x in x_values]
 
-    fig, ax = plt.subplots(1, 1)
-    _ = ax.plot(x_values, normal_pmf_values)
+    _ = ax.plot(x_values, normal_pmf_values, **options)
     if title:
         _ = ax.set_title(title)
     if xlabel:
@@ -254,6 +355,26 @@ def one_dim_scatterplot(arr, ax, jitter=0.2, **options):
     ax.scatter(arr, y_range, **options)
     ax.yaxis.set_ticklabels([])
     ax.set_ylim([-1, 1])
+
+def shade_under_distribution(ax, dist, shade_from, shade_to):
+    """Take a graph and shade under a distribution for a certain range."""
+    #https://stackoverflow.com/questions/16417496/matplotlib-fill-between-multiple-lines
+    ax.fill_between(x, y3, y4, color='grey', alpha='0.5')
+
+def plot_3d_surface():
+    """TODO: Fill out function."""
+    pass
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#
+# Testing These Functions
+#
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def test_plot_shading():
+    fig, ax = plt.subplots(1,1)
+    plot_normal_dist(ax, mu=0, std=1)
+    plt.show()
 
 
 if __name__ == "__main__":
