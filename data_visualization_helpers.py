@@ -1,10 +1,11 @@
 import numpy as np
 import pandas as pd
 import scipy.stats as stats
+from sklearn.linear_model import LinearRegression
 
 import matplotlib.pyplot as plt
-
-plt.style.use('fivethirtyeight') # or 'ggplot', or one of the seaborn defaults
+import seaborn as sns
+sns.set() #or plt.style.use('fivethirtyeight'), or 'ggplot', etc.
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
@@ -85,6 +86,30 @@ def plot_3d_surface():
     """TODO: Fill out function."""
     pass
 
+def plot_linear_regression_and_residuals(x, y):
+    x = x.copy().reshape(-1, 1)
+    y = y.copy().reshape(-1, 1)
+
+    linreg = LinearRegression()
+    linreg.fit(x, y)
+    m = coefficient = linreg.coef_
+    b = intercept = linreg.intercept_
+
+    fig, ax = plt.subplots(figsize=(9, 7))
+    ax.scatter(x, y, label="data")
+    # ax.set_xlabel("weight (lbs)")
+    # ax.set_ylabel("fuel economy (mpg)")
+    # ax.set_title("test set fuel economy data & predictive model")
+
+    weights = np.linspace(min(x), max(x), 100).reshape(-1, 1)
+    ax.plot(weights, linreg.predict(weights), c="red", label="model" )
+    ax.legend()
+
+    for x_i, y_i in zip(x, y):
+        plt.plot([x_i, x_i], [y_i, b+m*x_i], color='gray', linestyle='dashed')
+
+    plt.show()
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
 # Testing These Functions
@@ -95,3 +120,12 @@ def test_plot_shading():
     fig, ax = plt.subplots(1,1)
     plot_normal_dist(ax, mu=0, std=1)
     plt.show()
+
+def test_linreg_and_residuals():
+    x = np.linspace(0, 100, 101)
+    y = 5 * x - 7 + stats.norm(0, 60).rvs(101)
+    plot_linear_regression_and_residuals(x, y)
+
+
+if __name__ == "__main__":
+    pass
