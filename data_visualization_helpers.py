@@ -110,6 +110,40 @@ def plot_linear_regression_and_residuals(x, y):
 
     plt.show()
 
+def plot_counts_by_date(df, date_col, date_format='%Y-%m-%d', y_label='Count', figure_title=''):
+    """Takes a pandas DataFrame that has a date column, and plots the count
+    of the rows by week, month, and year.
+    
+    Example:
+        plot_counts_by_date(
+            df_ml,
+            date_col='first_date',
+            y_label='Papers Published',
+            figure_title='Machine Learning Papers Published Over Time'
+        )
+    """
+    date_series = pd.to_datetime(df[date_col], format=date_format)
+    date_series.index = date_series
+    date_series[:] = 1
+
+    papers_per_week = date_series.resample('1W').size()
+    papers_per_month = date_series.resample('1M').size()
+    papers_per_year = date_series.resample('1Y').size()
+
+    fig, axs = plt.subplots(1, 3, figsize=(13, 5))
+    axs = axs.flatten()
+    title = fig.suptitle(figure_title)
+    title.set_position([0.5, 1.1])
+
+    papers_per_week.plot(ax=axs[0], title='By Week', legend=False)
+    papers_per_month.plot(ax=axs[1], title='By Month', legend=False)
+    papers_per_year.plot(ax=axs[2], title='By Year', legend=False)
+    for ax in axs:
+        ax.set_xlabel('')
+    axs[0].set_ylabel(y_label)
+    plt.tight_layout()
+    plt.show()
+
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #
 # Testing These Functions
